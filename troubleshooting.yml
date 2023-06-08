@@ -1,0 +1,58 @@
+---
+- name: Collect Troubleshooting Information
+  hosts: all
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Create temporary directory
+      tempfile:
+        state: directory
+      register: temp_dir
+
+    - name: Collect system information
+      command: ansible-doc -l
+      register: system_info
+      changed_when: false
+
+    - name: Collect process information
+      command: ps aux
+      register: process_info
+      changed_when: false
+
+    - name: Collect network information
+      command: ifconfig -a
+      register: network_info
+      changed_when: false
+
+    - name: Collect disk usage information
+      command: df -h
+      register: disk_info
+      changed_when: false
+
+    - name: Collect log files
+      fetch:
+        src: "{{ item }}"
+        dest: "{{ temp_dir.path }}"
+        flat: yes
+      with_items:
+        - "/var/log/syslog"
+        - "/var/log/auth.log"
+        - "/var/log/nginx/error.log"  # Add more log files as needed
+      ignore_errors: yes
+      register: log_files_result
+
+    - name: Check for missing log files
+      debug:
+        var: log_files_result
+      when: log_files_result is failed
+
+    - name: Archive collected information
+      archive:
+        path: "{{ temp_dir.path }}"
+        dest: "troubleshooting_information_{{ ansible_date_time.date }}.tar.gz"
+
+    - name: Remove temporary directory
+      file:
+        path: "{{ temp_dir.path }}"
+        state: absent

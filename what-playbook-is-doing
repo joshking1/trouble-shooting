@@ -1,0 +1,29 @@
+This Ansible playbook is designed to collect troubleshooting information from multiple hosts. Let's break down what each section of the playbook does:
+
+name: This is a descriptive name for the playbook. In this case, it's "Collect Troubleshooting Information."
+
+hosts: all: This specifies that the playbook should run on all hosts defined in the inventory.
+become: true: This indicates that the tasks in the playbook should be executed with root privileges.
+gather_facts: true: This instructs Ansible to gather facts about the hosts before running the tasks. Facts include information about the operating system, network interfaces, and other details.
+
+The playbook consists of several tasks:
+
+Create temporary directory: This task uses the tempfile module to create a temporary directory. The register keyword is used to store the path of the created directory in a variable called temp_dir.
+
+Collect system information: This task uses the command module to execute the command ansible-doc -l on the remote hosts. It registers the output of the command in a variable called system_info. The changed_when keyword is set to false to indicate that this task does not change the state of the system.
+
+Collect process information: This task uses the command module to execute the command ps aux on the remote hosts. It registers the output of the command in a variable called process_info.
+
+Collect network information: This task uses the command module to execute the command ifconfig -a on the remote hosts. It registers the output of the command in a variable called network_info.
+
+Collect disk usage information: This task uses the command module to execute the command df -h on the remote hosts. It registers the output of the command in a variable called disk_info.
+
+Collect log files: This task uses the fetch module to copy log files from the remote hosts to the temporary directory. It uses a loop (with_items) to specify multiple log files to fetch. The ignore_errors keyword is set to yes to ignore any errors that occur during the fetch process. The result of this task is stored in a variable called log_files_result.
+
+Check for missing log files: This task uses the debug module to print the value of the log_files_result variable. It only runs when the previous task failed (i.e., log files were not successfully fetched).
+
+Archive collected information: This task uses the archive module to create a compressed archive of the temporary directory. The archive is named based on the current date and time.
+
+Remove temporary directory: This task uses the file module to remove the temporary directory created earlier.
+
+Overall, this playbook performs tasks such as creating a temporary directory, collecting system information, process information, network information, disk usage information, fetching log files, archiving the collected information, and finally, removing the temporary directory. The intention is to gather troubleshooting information for analysis and debugging purposes.

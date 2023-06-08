@@ -1,0 +1,4 @@
+
+# Command to run to execute the playbook 
+
+ansible-playbook troubleshooting.yml -i inventory.ini
